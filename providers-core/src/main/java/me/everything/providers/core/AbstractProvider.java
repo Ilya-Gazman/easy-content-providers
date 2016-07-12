@@ -14,7 +14,7 @@ import android.net.Uri;
 public abstract class AbstractProvider {
 
     protected String TAG;
-    private ContentResolver mContentResolver;
+    protected ContentResolver mContentResolver;
 
     protected AbstractProvider(Context context) {
         TAG = getClass().getName();
@@ -31,8 +31,7 @@ public abstract class AbstractProvider {
             return null;
         }
 
-        Data<T> data = new Data<T>(cursor, cls);
-        return data;
+        return new Data<>(cursor, cls);
     }
 
     protected <T extends Entity> Data<T> getContentTableData(Uri uri, String selection, String[] selectionArgs, String sortOrder, Class<T> cls) {

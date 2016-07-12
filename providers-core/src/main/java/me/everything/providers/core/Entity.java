@@ -7,6 +7,7 @@ import android.util.Log;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,7 +22,7 @@ public abstract class Entity {
      */
     public static <T> String[] getColumns(Class<T> cls) {
         List<String> columns = new ArrayList<String>();
-        Field[] fields = cls.getDeclaredFields();
+        Field[] fields = getDeclaredFields(cls);
         for (Field field : fields) {
             if (!field.isAnnotationPresent(IgnoreMapping.class)) {
                 FieldMapping contentField = field.getAnnotation(FieldMapping.class);
@@ -40,7 +41,7 @@ public abstract class Entity {
      */
     public static <T> String[] getWriteColumns(Class<T> cls) {
         List<String> columns = new ArrayList<String>();
-        Field[] fields = cls.getDeclaredFields();
+        Field[] fields = getDeclaredFields(cls);
         for (Field field : fields) {
             if (!field.isAnnotationPresent(IgnoreMapping.class)) {
                 FieldMapping contentField = field.getAnnotation(FieldMapping.class);
@@ -61,10 +62,8 @@ public abstract class Entity {
      * Get value from the field of java Entity based on column name from
      * database.
      *
-     * @param columnName
-     *            The physical name of column in the database.
-     * @param entity
-     *            The logical java entity.
+     * @param columnName The physical name of column in the database.
+     * @param entity     The logical java entity.
      * @return The value
      */
     public static Object getColumnValue(String columnName, Entity entity) {
@@ -73,11 +72,9 @@ public abstract class Entity {
             if (field != null) {
                 return field.get(entity);
             }
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
-        }
-        catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         return null;
@@ -86,18 +83,16 @@ public abstract class Entity {
     public static Object getColumnValue(Field field, Entity entity) {
         try {
             return field.get(entity);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
-        }
-        catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         return null;
     }
 
     public static Field getColumnField(String columnName, Entity entity) {
-        Field[] fields = entity.getClass().getDeclaredFields();
+        Field[] fields = getDeclaredFields(entity.getClass());
         for (Field field : fields) {
             if (!field.isAnnotationPresent(IgnoreMapping.class)) {
                 FieldMapping contentField = field.getAnnotation(FieldMapping.class);
@@ -106,7 +101,18 @@ public abstract class Entity {
                 }
             }
         }
+
         return null;
+    }
+
+    private static Field[] getDeclaredFields(Class<?> inspectedClass) {
+        ArrayList<Field> fields = new ArrayList<>();
+        do {
+            Collections.addAll(fields, inspectedClass.getDeclaredFields());
+            inspectedClass = inspectedClass.getSuperclass();
+        }while (inspectedClass != null);
+
+        return fields.toArray(new Field[fields.size()]);
     }
 
     public static ContentValues getContentValues(String[] columns, Entity entity) {
@@ -117,8 +123,8 @@ public abstract class Entity {
             Object value = getColumnValue(field, entity);
             if (fieldMapping != null) {
                 FieldMapping.PhysicalType physicalType = fieldMapping.physicalType();
-				/*
-				 * This can fail in case of logical type != physical type. But,
+                /*
+                 * This can fail in case of logical type != physical type. But,
 				 * since we use this method for fields that logical & physical
 				 * types are the same, then we can assume this strict approach.
 				 */
@@ -160,16 +166,14 @@ public abstract class Entity {
      * Create new entity instance from database raw instance.
      *
      * @param <T>
-     *
      * @param cursor
      */
     public static <T extends Entity> T create(Cursor cursor, Class<T> cls) {
         try {
             T entity = cls.newInstance();
-            Field[] fields = cls.getDeclaredFields();
+            Field[] fields = getDeclaredFields(cls);
             return create(entity, cursor, cls, fields);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -179,7 +183,6 @@ public abstract class Entity {
      * Create new entity instance from database raw instance.
      *
      * @param <T>
-     *
      * @param cursor
      */
     public static <T extends Entity> T create(Cursor cursor, Class<T> cls, String... projection) {
@@ -190,8 +193,7 @@ public abstract class Entity {
                 fields[i] = getColumnField(projection[i], entity);
             }
             return create(entity, cursor, cls, fields);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -234,8 +236,7 @@ public abstract class Entity {
                             break;
                     }
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.e(Entity.class.getName(), "field=" + field.getName(), e);
             }
         }
@@ -246,7 +247,7 @@ public abstract class Entity {
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("{");
-        Field[] fields = getClass().getDeclaredFields();
+        Field[] fields = getDeclaredFields(getClass());
         boolean firstTime = true;
         for (Field field : fields) {
             try {
@@ -258,8 +259,7 @@ public abstract class Entity {
                 stringBuilder.append("=");
                 stringBuilder.append(field.get(this));
                 firstTime = false;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

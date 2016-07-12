@@ -20,8 +20,7 @@ public class CallsProvider extends AbstractProvider {
 	 * @return List of calls
 	 */
 	public Data<Call> getCalls() {
-        Data<Call> calls = getContentTableData(Call.uri, Call.class);
-		return calls;
+		return getContentTableData(Call.uri, Call.class);
 	}
 
 }
