@@ -20,7 +20,7 @@ public class Data<T extends Entity> {
      * Returns list with all content
      */
     public List<T> getList() {
-        List<T> data = new ArrayList<T>();
+        List<T> data = new ArrayList<>();
         if (mCursor == null) {
             return data;
         }
@@ -40,10 +40,10 @@ public class Data<T extends Entity> {
     }
 
     public T fromCursor(Cursor cursor) {
-        return Entity.create(mCursor, mCls);
+        return Entity.create(cursor, mCls);
     }
 
     public T fromCursor(Cursor cursor, String... projection) {
-        return Entity.create(mCursor, mCls, projection);
+        return Entity.create(cursor, mCls, projection);
     }
 }

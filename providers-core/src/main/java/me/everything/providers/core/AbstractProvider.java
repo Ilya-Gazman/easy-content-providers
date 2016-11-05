@@ -15,6 +15,11 @@ public abstract class AbstractProvider {
 
     protected String TAG;
     protected ContentResolver mContentResolver;
+    private String selection;
+
+    public void setSelection(String selection) {
+        this.selection = selection;
+    }
 
     protected AbstractProvider(Context context) {
         TAG = getClass().getName();
@@ -26,10 +31,7 @@ public abstract class AbstractProvider {
     }
 
     protected <T extends Entity> Data<T> getContentTableData(Uri uri, Class<T> cls) {
-        Cursor cursor = mContentResolver.query(uri, Entity.getColumns(cls), null, null, null /*BaseColumns._ID + " DESC " + " LIMIT 50" */);
-        if (cursor == null) {
-            return null;
-        }
+        Cursor cursor = mContentResolver.query(uri, Entity.getColumns(cls), selection, null, null /*BaseColumns._ID + " DESC " + " LIMIT 50" */);
 
         return new Data<>(cursor, cls);
     }
@@ -40,8 +42,7 @@ public abstract class AbstractProvider {
             return null;
         }
 
-        Data<T> data = new Data<T>(cursor, cls);
-        return data;
+        return new Data<>(cursor, cls);
     }
 
     protected <T extends Entity> T getContentRowData(Uri uri, String selection, String[] selectionArgs, String sortOrder, Class<T> cls) {
@@ -51,9 +52,8 @@ public abstract class AbstractProvider {
             return null;
         }
         try {
-            while (cursor.moveToNext()) {
+            if (cursor.moveToNext()) {
                 t = Entity.create(cursor, cls);
-                break;
             }
         } finally {
             cursor.close();
@@ -65,11 +65,10 @@ public abstract class AbstractProvider {
         Long id = Entity.getId(entity);
         if (id != null) {
             String[] columns = Entity.getWriteColumns(entity.getClass());
-            if (columns != null && columns.length > 0) {
+            if (columns.length > 0) {
                 ContentValues values = Entity.getContentValues(columns, entity);
                 Uri updateUri = ContentUris.withAppendedId(uri, id);
-                int rows = mContentResolver.update(updateUri, values, null, null);
-                return rows;
+                return mContentResolver.update(updateUri, values, null, null);
             }
         }
         return 0;
