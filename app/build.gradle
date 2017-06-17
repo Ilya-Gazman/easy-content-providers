@@ -28,7 +28,7 @@ dependencies {
     compile 'me.everything:providers-core:1.0.0'
     compile 'me.everything:providers-android:1.0.1'
     compile 'me.everything:providers-stetho:1.0.1'
-//    compile project(':providers-core')
-//    compile project(':providers-android')
-//    compile project(':providers-stetho')
+//    compile project(':Android:providers-core')
+//    compile project(':Android:providers-android')
+//    compile project(':Android:providers-stetho')
 }
